@@ -33,13 +33,15 @@ export class AppComponent {
   readonly octokit = new Octokit({ auth: environment.githubAccessToken });
   readonly trackSearchSuggestions = (index: number, listItem: SearchResult) => listItem.id;
   readonly displayFn = (listItem: SearchResult) => listItem?.name;
+  chart!: Chart;
 
   onSearchSuggestionSelected(selection: SearchResult) {
     this.selectedRepository$.next(selection);
     this.loadingRepo$.next(true);
     from(this.octokit.rest.issues.list({ baseUrl: selection.url, state: 'all' })).pipe(
       tap(r => this.selectedRepoIssues$.next(r.data)),
-      tap(r => new Chart(this.pieChart.nativeElement, {
+      tap(() => this.chart?.destroy()),
+      tap(r => this.chart = new Chart(this.pieChart.nativeElement, {
         type: 'pie',
         data: {
           labels: ['Open', 'Closed'],
